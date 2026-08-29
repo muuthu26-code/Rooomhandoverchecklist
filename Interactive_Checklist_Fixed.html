@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotel Room Handover Checklist</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 1200px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #2c3e50; margin-bottom: 20px; }
+        .header-info { display: flex; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
+        .header-info div { display: flex; flex-direction: column; width: 30%; }
+        .header-info label { font-weight: bold; margin-bottom: 5px; }
+        .header-info input, .header-info select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; vertical-align: top; }
+        th { background-color: #2c3e50; color: #fff; }
+        .status-select { padding: 6px; border-radius: 4px; width: 100%; }
+        .remarks-input { width: 100%; padding: 6px; box-sizing: border-box; }
+        
+        /* New Upload Buttons */
+        .upload-buttons { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+        .custom-file-upload {
+            border: 1px solid #27ae60;
+            display: inline-block;
+            padding: 6px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            background-color: #e8f8f5;
+            color: #27ae60;
+            font-size: 13px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .custom-file-upload:hover { background-color: #27ae60; color: white; }
+        .custom-file-upload input[type="file"] { display: none; }
+        
+        .photos-container { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 5px; }
+        /* Medium size for display and PDF */
+        .photos-container img { width: 220px; height: auto; border: 1px solid #ccc; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); } 
+        
+        .btn-container { text-align: center; margin-top: 30px; }
+        .btn { background-color: #27ae60; color: white; padding: 12px 24px; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; transition: background 0.3s; }
+        .btn:hover { background-color: #2ecc71; }
+        
+        /* Footer Styles */
+        .footer-section { margin-top: 30px; page-break-inside: avoid; }
+        .confirmation-text { background-color: #d9e2ec; padding: 12px; border: 1px solid #9fb3c8; font-weight: bold; margin-bottom: 40px; border-radius: 4px; }
+        .signatures { display: flex; justify-content: space-between; margin-top: 40px; padding: 0 10%; }
+        .signature-block { width: 35%; display: flex; flex-direction: column; }
+        .signature-block label { font-weight: bold; margin-bottom: 40px; }
+        .signature-input { border: none; border-bottom: 1px solid #333; padding: 5px; font-size: 16px; width: 100%; background: transparent; }
+        
+        @media print { 
+            .no-print { display: none !important; } 
+            body { background: white; padding: 0; } 
+            .container { box-shadow: none; padding: 0; } 
+            .photos-container img { width: 180px; } 
+            .confirmation-text { background-color: #e2e8f0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .signature-input::placeholder { color: transparent; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="report-content">
+    <h1>Room Handover Checklist</h1>
+    
+    <div class="header-info">
+        <div>
+            <label>Room Type</label>
+            <select id="room-type" class="no-print" onchange="loadChecklist()">
+                <option value="twin">Twin Bed Room</option>
+                <option value="king">King Room</option>
+            </select>
+            <strong class="print-only" id="room-type-display" style="display:none; margin-top:8px;">Twin Bed Room</strong>
+        </div>
+        <div>
+            <label>Room No.</label>
+            <input type="text" id="room-no" placeholder="Enter Room No.">
+        </div>
+        <div>
+            <label>Date</label>
+            <input type="date" id="date">
+        </div>
+        <div>
+            <label>Checked By</label>
+            <input type="text" id="checked-by" placeholder="Inspector Name">
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 5%;">Sl. No.</th>
+                <th style="width: 35%;">Room Handover Check Point</th>
+                <th style="width: 15%;">Status</th>
+                <th style="width: 15%;">Remarks / Action</th>
+                <th style="width: 30%;">Photo Evidence</th>
+            </tr>
+        </thead>
+        <tbody id="checklist-body">
+        </tbody>
+    </table>
+
+    <div class="footer-section">
+        <div class="confirmation-text">
+            Final Handover Confirmation: Room checked and all identified defects/actions recorded.
+        </div>
+        <div class="signatures">
+            <div class="signature-block">
+                <label>Housekeeping</label>
+                <input type="text" class="signature-input" placeholder="Name / Signature">
+            </div>
+            <div class="signature-block">
+                <label>Project</label>
+                <input type="text" class="signature-input" placeholder="Name / Signature">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="btn-container no-print">
+    <button class="btn" onclick="generatePDF()">Generate PDF Report</button>
+</div>
+
+<script>
+    const checklists = {"twin": [{"sl": "1", "point": "Main Entrance: Room number plate / signage /Fire Evection plan"}, {"sl": "2", "point": "Eye peephole and door lock/ behind the door floor stopper"}, {"sl": "3", "point": "Door stopper"}, {"sl": "4", "point": "Visible area: cornice / decorative material / switches, etc."}, {"sl": "5", "point": "Above the door: AC vent grill"}, {"sl": "6", "point": "Power saving socket"}, {"sl": "7", "point": "Master power / control panel /Wash room control pannel ( Toyama)"}, {"sl": "8", "point": "frist wardrobe door Nobs"}, {"sl": "9", "point": "Wardrobe initial rod"}, {"sl": "10", "point": "Luggage rack with marble top & above ceiling light"}, {"sl": "11", "point": "Vistuble area with two ceiling lights"}, {"sl": "12", "point": "2nd wardrobe with door nobs & initial rod with three drawers"}, {"sl": "13", "point": "Minibar counter with marble above the minibar & hanging rack"}, {"sl": "14", "point": "TV cabinet with outer wooden frame And Metal Frame"}, {"sl": "15", "point": "TV cabinet With Marble top"}, {"sl": "16", "point": "Writing table / Chair"}, {"sl": "17", "point": "Writing table lamp"}, {"sl": "18", "point": "2 power sockets, USB & C-pin socket ( Writing table area )"}, {"sl": "19", "point": "Below the writing table: 2 power sockets & telephone  Jack socket"}, {"sl": "20", "point": "Next to the writing table: individual room socket"}, {"sl": "21", "point": "Curtain rods (2): 1 for sheer curtain and 1 for heavy curtain /Strip light"}, {"sl": "22", "point": "Single seater sofa with base cushion & back cushion"}, {"sl": "23", "point": "Coffee table with marble top"}, {"sl": "24", "point": "Bedside table with auto machine socket"}, {"sl": "25", "point": "Bedside table options / controls: Master, Relax, Reading, Night  Vegetal, Mood, Privacy, Make My Room"}, {"sl": "26", "point": "Next to auto machine: USB,  power sockets & 1 C-pin socket"}, {"sl": "27", "point": "Above the bedside table: hanging lamp"}, {"sl": "28", "point": "Headboard with leather backrest"}, {"sl": "29", "point": "Above the headboard: picture frame"}, {"sl": "30", "point": "Bedside table with marble top & hanging lamp with lampshade"}, {"sl": "31", "point": "Above the table: power socket, C-pin socket & USB socket"}, {"sl": "32", "point": "AC thermostat & one power socket"}, {"sl": "33", "point": "Under the bed rug"}, {"sl": "34", "point": "Inside the minibar counter: one power socket"}, {"sl": "35", "point": "Tea kettle power socket"}, {"sl": "36", "point": "Bathroom door with handle"}, {"sl": "37", "point": "Tower bolt"}, {"sl": "38", "point": "Behind the bathroom doors: floor stopper"}, {"sl": "39", "point": "Towel rack & bathroom hooks On both side"}, {"sl": "40", "point": "Shower cubicle with magnet Beedings"}, {"sl": "41", "point": "Shower diverter, hand shower & related shower fittings"}, {"sl": "42", "point": "Shower area exhaust"}, {"sl": "43", "point": "Vanity counter with marble, tap & popup"}, {"sl": "44", "point": "Bathroom mirror with back light"}, {"sl": "45", "point": "Shaving  socket & hair dryer socket in vanity area"}, {"sl": "46", "point": "Below the vanity counter: hot & cold water knobs, bottle trap"}, {"sl": "47", "point": "W.C. /Cublical and Magnet beedings"}, {"sl": "48", "point": "Toilet holder, telephone socket, health faucet, W.C. flush plate"}, {"sl": "49", "point": "Exhaust above the W/C"}], "king": [{"sl": "1", "point": "Main Entrance: Room number plate / signage /Fire Evection plan"}, {"sl": "2", "point": "Eye peephole and door lock/ behind the door floor stopper"}, {"sl": "3", "point": "Door stopper"}, {"sl": "4", "point": "Visible area: cornice / decorative material / switches, etc."}, {"sl": "5", "point": "Above the door: AC vent grill"}, {"sl": "6", "point": "Power saving socket"}, {"sl": "7", "point": "Master power / control panel /Wash room control pannel ( Toyama)"}, {"sl": "8", "point": "Walk In Ward Robe"}, {"sl": "9", "point": "Wardrobe initial rod With 3 Droyers"}, {"sl": "10", "point": "Luggage rack with marble top & above ceiling light With Senosar"}, {"sl": "11", "point": "Vistuble area with two ceiling lights"}, {"sl": "13", "point": "Minibar counter with marble above the minibar & hanging rack"}, {"sl": "14", "point": "TV cabinet with outer wooden frame And Metal Frame"}, {"sl": "15", "point": "TV cabinet With Marble top"}, {"sl": "16", "point": "Writing table / Chair"}, {"sl": "17", "point": "Writing table lamp"}, {"sl": "18", "point": "2 power sockets, USB & C-pin socket ( Writing table area )"}, {"sl": "19", "point": "Below the writing table: 2 power sockets & telephone  Jack socket"}, {"sl": "20", "point": "Next to the writing table: individual room socket"}, {"sl": "21", "point": "Curtain rods (2): 1 for sheer curtain and 1 for heavy curtain /Strip light"}, {"sl": "22", "point": "Double seater sofa with base cushion & back cushion"}, {"sl": "23", "point": "Coffee table with marble top"}, {"sl": "24", "point": "Bedside table with auto machine socket"}, {"sl": "25", "point": "Bedside table options / controls: Master, Relax, Reading, Night  Vegetal, Mood, Privacy, Make My Room"}, {"sl": "26", "point": "Next to auto machine: USB,  power sockets & 1 C-pin socket"}, {"sl": "27", "point": "Above the bedside table: hanging lamp"}, {"sl": "28", "point": "Headboard with leather backrest"}, {"sl": "29", "point": "Above the headboard: picture frame"}, {"sl": "30", "point": "Bedside table with marble top & hanging lamp with lampshade"}, {"sl": "31", "point": "Above the table: power socket, C-pin socket & USB socket"}, {"sl": "32", "point": "AC thermostat & one power socket"}, {"sl": "33", "point": "Under the bed rug"}, {"sl": "34", "point": "Inside the minibar counter: one power socket"}, {"sl": "35", "point": "Tea kettle power socket"}, {"sl": "36", "point": "Bathroom door with handle"}, {"sl": "37", "point": "Tower bolt"}, {"sl": "38", "point": "Behind the bathroom doors: floor stopper"}, {"sl": "39", "point": "Towel rack & bathroom hooks On both side"}, {"sl": "40", "point": "Shower cubicle with magnet Beedings"}, {"sl": "41", "point": "Shower diverter, hand shower & related shower fittings"}, {"sl": "42", "point": "Shower area exhaust"}, {"sl": "43", "point": "Vanity counter with marble, tap & popup"}, {"sl": "44", "point": "Bathroom mirror with back light"}, {"sl": "45", "point": "Shaving  socket & hair dryer socket in vanity area"}, {"sl": "46", "point": "Below the vanity counter: hot & cold water knobs, bottle trap"}, {"sl": "47", "point": "W.C. /Cublical and Magnet beedings"}, {"sl": "48", "point": "Toilet holder, telephone socket, health faucet, W.C. flush plate"}, {"sl": "49", "point": "Exhaust above the W/C"}]};
+
+    function loadChecklist() {
+        const type = document.getElementById('room-type').value;
+        const tbody = document.getElementById('checklist-body');
+        document.getElementById('room-type-display').innerText = type === 'twin' ? 'Twin Bed Room' : 'King Room';
+        
+        tbody.innerHTML = '';
+        
+        const items = checklists[type] || [];
+        
+        items.forEach((item, index) => {
+            const tr = document.createElement('tr');
+            
+            tr.innerHTML = `
+                <td>${item.sl}</td>
+                <td>${item.point}</td>
+                <td>
+                    <select class="status-select">
+                        <option value="">Select...</option>
+                        <option value="Okay">Okay</option>
+                        <option value="Not Okay">Not Okay</option>
+                    </select>
+                </td>
+                <td>
+                    <textarea class="remarks-input" rows="3" placeholder="Remarks..."></textarea>
+                </td>
+                <td>
+                    <div class="upload-buttons no-print">
+                        <label class="custom-file-upload">
+                            📸 Take Photo
+                            <input type="file" accept="image/*" capture="environment" onchange="handleFiles(this, ${index})">
+                        </label>
+                        <label class="custom-file-upload">
+                            📁 Upload Multiple
+                            <input type="file" accept="image/*" multiple onchange="handleFiles(this, ${index})">
+                        </label>
+                    </div>
+                    <div class="photos-container" id="photos-${index}"></div>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function handleFiles(input, index) {
+        const container = document.getElementById('photos-' + index);
+        const files = input.files;
+        
+        if (!files || files.length === 0) return;
+        
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    const MAX_WIDTH = 1024;
+                    let width = img.width;
+                    let height = img.height;
+                    
+                    if (width > MAX_WIDTH) {
+                        height = Math.round((height *= MAX_WIDTH / width));
+                        width = MAX_WIDTH;
+                    }
+                    
+                    canvas.width = width;
+                    canvas.height = height;
+                    
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    const now = new Date();
+                    const timestamp = now.toLocaleString();
+                    
+                    // FIXED: using standard string concatenation to prevent parsing errors
+                    const fontSize = Math.max(24, Math.floor(width / 30));
+                    ctx.font = "bold " + fontSize + "px Arial";
+                    ctx.fillStyle = "rgba(255, 0, 0, 0.9)"; 
+                    ctx.textAlign = "right";
+                    ctx.textBaseline = "bottom";
+                    ctx.shadowColor = "white";
+                    ctx.shadowBlur = 5;
+                    ctx.shadowOffsetX = 1;
+                    ctx.shadowOffsetY = 1;
+                    
+                    ctx.fillText(timestamp, width - 15, height - 15);
+                    
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+                    
+                    const resultImg = document.createElement('img');
+                    resultImg.src = dataUrl;
+                    container.appendChild(resultImg);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+        input.value = ''; 
+    }
+
+    function generatePDF() {
+        const select = document.getElementById('room-type');
+        const display = document.getElementById('room-type-display');
+        select.style.display = 'none';
+        display.style.display = 'inline';
+
+        const element = document.getElementById('report-content');
+        
+        const opt = {
+            margin:       0.3,
+            filename:     'Room_Handover_Report.pdf',
+            image:        { type: 'jpeg', quality: 0.85 },
+            html2canvas:  { scale: 1.5, useCORS: true, letterRendering: true },
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(element).save().then(() => {
+            select.style.display = 'inline';
+            display.style.display = 'none';
+        });
+    }
+
+    window.onload = loadChecklist;
+</script>
+</body>
+</html>
