@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detailed Room Handover Checklist - Family Room</title>
+    <!-- html2pdf library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --border: #bdc3c7;
+            --bg: #ecf0f1;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 15px;
+            background-color: #fff;
+            color: #333;
+        }
+        .container {
+            max-width: 1250px;
+            margin: 0 auto;
+            background: #fff;
+        }
+        h2 {
+            text-align: center;
+            color: var(--primary);
+            text-transform: uppercase;
+        }
+        .header-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            background: var(--bg);
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .header-info div {
+            flex: 1;
+            min-width: 200px;
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-weight: bold;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+        input[type="text"], input[type="date"], select, textarea {
+            padding: 8px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-family: inherit;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            min-width: 850px;
+        }
+        th, td {
+            border: 1px solid var(--border);
+            padding: 10px;
+            vertical-align: top;
+        }
+        th {
+            background-color: var(--primary);
+            color: white;
+            text-align: left;
+        }
+        .section-header {
+            background-color: #eaeded;
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 1.05em;
+        }
+        .photo-upload {
+            margin-top: 8px;
+        }
+        .photo-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .photo-preview img {
+            width: 90px;
+            height: auto;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .footer-section {
+            margin-top: 25px;
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+        .general-comments-box {
+            margin-bottom: 20px;
+        }
+        .confirmation-text {
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 25px;
+            color: var(--primary);
+            font-size: 1.05em;
+        }
+        .sign-off-grid {
+            display: flex;
+            justify-content: space-between;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        .sign-box {
+            flex: 1;
+            min-width: 250px;
+            background: white;
+            padding: 15px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+        }
+        .controls {
+            position: sticky;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.98);
+            padding: 15px 0;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            border-top: 1px solid var(--border);
+            margin-top: 20px;
+            z-index: 100;
+        }
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+        }
+        .btn-save { background-color: #27ae60; }
+        .btn-pdf { background-color: #e74c3c; }
+        .btn-clear { background-color: #7f8c8d; }
+
+        #loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            color: white;
+            font-size: 1.2em;
+            text-align: center;
+            padding-top: 20vh;
+        }
+
+        @media (max-width: 768px) {
+            .controls { flex-direction: column; }
+            button { width: 100%; }
+            .sign-off-grid { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="loading-overlay">Generating PDF, please wait...</div>
+
+<div class="container" id="report-container">
+    <h2>Family Room - Handover Checklist</h2>
+    
+    <div class="header-info">
+        <div>
+            <label for="roomNo">Room No:</label>
+            <input type="text" id="roomNo" placeholder="Enter Room Number">
+        </div>
+        <div>
+            <label for="date">Date:</label>
+            <input type="date" id="date">
+        </div>
+        <div>
+            <label for="checkedBy">Checked By:</label>
+            <input type="text" id="checkedBy" placeholder="Inspector Name">
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th width="4%">No.</th>
+                    <th width="30%">Check Point Description</th>
+                    <th width="12%">Status</th>
+                    <th width="22%">Remarks / Defect</th>
+                    <th width="22%">Action Required</th>
+                    <th width="10%">Photo Evidence</th>
+                </tr>
+            </thead>
+            <tbody id="checklist-body">
+                <!-- Populated via JS -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="footer-section">
+        <div class="general-comments-box">
+            <label for="generalComments">General Comments / Observations:</label>
+            <textarea id="generalComments" placeholder="Enter any general room remarks or summary comments here..."></textarea>
+        </div>
+
+        <div class="confirmation-text">
+            Final Handover Confirmation: Room checked and all identified defects/actions recorded.
+        </div>
+
+        <div class="sign-off-grid">
+            <div class="sign-box">
+                <label>Housekeeping</label>
+                <div style="margin-top: 10px;">
+                    <input type="text" id="housekeepingCompletedBy" placeholder="Completed By (Name)">
+                </div>
+                <div style="margin-top: 10px;">
+                    <input type="text" id="housekeepingSign" placeholder="Signature / Date">
+                </div>
+            </div>
+
+            <div class="sign-box">
+                <label>Project Team</label>
+                <div style="margin-top: 10px;">
+                    <input type="text" id="projectTeamCompletedBy" placeholder="Completed By (Name)">
+                </div>
+                <div style="margin-top: 10px;">
+                    <input type="text" id="projectTeamSign" placeholder="Signature / Date">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="controls" id="controls">
+    <button class="btn-save" onclick="saveData()">Save Progress</button>
+    <button class="btn-pdf" onclick="generatePDF()">Generate PDF Report</button>
+    <button class="btn-clear" onclick="clearData()">Clear All Data</button>
+</div>
+
+<script>
+    // Updated checklist items with modification to Point 34
+    const rawData = [
+        {
+            category: "1. Main Entrance",
+            items: ["Room number plate", "Door Bell", "Main Door", "Door Lock", "Door Handle", "Door Closer", "Peephole", "Door floor stopper", "Fire Evacuation plan", "Safety latch chain"]
+        },
+        {
+            category: "2. Vestibule Area",
+            items: ["Key card Switch", "Signages switch", "Console Table", "Fresh air vent grill.", "Wash room control pannel (Toyama)", "Trap Door Ceiling lights", "Sprinkler", "Minibar counter with marble above the minibar & hanging rack", "Inside the minibar counter power socket", "Tea kettle power socket"]
+        },
+        {
+            category: "3. Walkin Wardrobe",
+            items: ["Walk In Ward Robe door and handles", "Hangers Rod", "3 Drawers and 3 Shelves", "Luggage rack with marble top", "Ceiling lights", "Power socket", "Dressing Mirror"]
+        },
+        {
+            category: "4. TV Cabinet",
+            items: ["TV cabinet with outer wooden frame And Metal Frame", "TV cabinet With Marble top"]
+        },
+        {
+            category: "5. Window Area",
+            items: ["Curtain rods (2): 1 for sheer curtain and 1 for heavy curtain / Strip light", "Double seater sofa with base cushion & cushion", "Ottoman", "Coffee table with marble top", "Marble top & corner table & pouf stool"]
+        },
+        {
+            category: "6. Bedside",
+            items: ["Headboard with leather backrest", "Above the headboard picture frame", "Bed Base change to Bed Base with wheels & support legs", "Mattress", "Ottoman", "Bedside tables with marble top", "Smart touch switch (Master, Reading, Night, Relax, Privacy, MUR) (Left & Right Side)", "USB, power sockets & 1 C-pin socket (Left & Right Side)", "Above the bedside table hanging lamp", "Bedside lamp", "Under the bed rug", "AC Grill", "Sprinkler", "2 no's Smoke Detector", "AC thermostat & one power socket", "Ceiling Lights"]
+        },
+        {
+            category: "7. Bathroom",
+            items: ["Bathroom door with handle", "Tower bolt", "Behind the bathroom doors floor stopper", "Towel rack & bathroom hooks on both sides", "Shower cubicle sliding door", "Shower diverter, hand shower, shower head & seat", "Shower niche", "Shower area exhaust", "Bathtub", "Vanity counter with marble, tap & popup", "Vanity mirror with back light", "Shaving socket & hair dryer socket in vanity area", "Below the vanity counter: hot & cold water knobs, bottle trap", "W.C. / Cubical and Magnet beedings", "Toilet holder, telephone socket, health faucet, W.C. flush plate", "Exhaust above the W/C"]
+        }
+    ];
+
+    const tbody = document.getElementById('checklist-body');
+    let imageDataStore = {}; 
+    let globalRowCounter = 1;
+
+    function renderTable() {
+        rawData.forEach(section => {
+            const sectionTr = document.createElement('tr');
+            sectionTr.innerHTML = `<td colspan="6" class="section-header">${section.category}</td>`;
+            tbody.appendChild(sectionTr);
+
+            section.items.forEach(point => {
+                const currentRowId = globalRowCounter++;
+                imageDataStore[currentRowId] = [];
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${currentRowId}</td>
+                    <td>${point}</td>
+                    <td>
+                        <select id="status_${currentRowId}">
+                            <option value="">Select...</option>
+                            <option value="OK">OK</option>
+                            <option value="Not OK">Not OK</option>
+                        </select>
+                    </td>
+                    <td><textarea id="remarks_${currentRowId}" placeholder="Enter remarks..."></textarea></td>
+                    <td><textarea id="action_${currentRowId}" placeholder="Enter required action..."></textarea></td>
+                    <td>
+                        <div class="photo-upload" data-html2canvas-ignore>
+                            <input type="file" accept="image/*" multiple onchange="processImages(this, ${currentRowId})">
+                        </div>
+                        <div class="photo-preview" id="preview_${currentRowId}"></div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        });
+        loadData();
+    }
+
+    async function processImages(input, rowId) {
+        if (!input.files || input.files.length === 0) return;
+        const previewContainer = document.getElementById(`preview_${rowId}`);
+        
+        for (let file of input.files) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    const maxWidth = 800;
+                    const scaleSize = maxWidth / img.width;
+                    canvas.width = maxWidth;
+                    canvas.height = img.height * scaleSize;
+                    
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    
+                    const timestamp = new Date().toLocaleString();
+                    ctx.font = "bold 24px Arial";
+                    ctx.fillStyle = "yellow";
+                    ctx.strokeStyle = "black";
+                    ctx.lineWidth = 2;
+                    
+                    const textWidth = ctx.measureText(timestamp).width;
+                    ctx.strokeText(timestamp, canvas.width - textWidth - 20, canvas.height - 20);
+                    ctx.fillText(timestamp, canvas.width - textWidth - 20, canvas.height - 20);
+                    
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
+                    imageDataStore[rowId].push(dataUrl);
+                    
+                    const previewImg = document.createElement('img');
+                    previewImg.src = dataUrl;
+                    previewContainer.appendChild(previewImg);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+        input.value = '';
+    }
+
+    function saveData() {
+        const data = {
+            roomNo: document.getElementById('roomNo').value,
+            date: document.getElementById('date').value,
+            checkedBy: document.getElementById('checkedBy').value,
+            generalComments: document.getElementById('generalComments').value,
+            housekeepingCompletedBy: document.getElementById('housekeepingCompletedBy').value,
+            housekeepingSign: document.getElementById('housekeepingSign').value,
+            projectTeamCompletedBy: document.getElementById('projectTeamCompletedBy').value,
+            projectTeamSign: document.getElementById('projectTeamSign').value,
+            rows: {}
+        };
+
+        for (let i = 1; i < globalRowCounter; i++) {
+            data.rows[i] = {
+                status: document.getElementById(`status_${i}`).value,
+                remarks: document.getElementById(`remarks_${i}`).value,
+                action: document.getElementById(`action_${i}`).value,
+                images: imageDataStore[i]
+            };
+        }
+
+        localStorage.setItem('familyRoomChecklistData', JSON.stringify(data));
+        alert('Checklist progress saved successfully!');
+    }
+
+    function loadData() {
+        const saved = localStorage.getItem('familyRoomChecklistData');
+        if (saved) {
+            const data = JSON.parse(saved);
+            document.getElementById('roomNo').value = data.roomNo || '';
+            document.getElementById('date').value = data.date || '';
+            document.getElementById('checkedBy').value = data.checkedBy || '';
+            document.getElementById('generalComments').value = data.generalComments || '';
+            document.getElementById('housekeepingCompletedBy').value = data.housekeepingCompletedBy || '';
+            document.getElementById('housekeepingSign').value = data.housekeepingSign || '';
+            document.getElementById('projectTeamCompletedBy').value = data.projectTeamCompletedBy || '';
+            document.getElementById('projectTeamSign').value = data.projectTeamSign || '';
+
+            for (let i = 1; i < globalRowCounter; i++) {
+                if (data.rows && data.rows[i]) {
+                    document.getElementById(`status_${i}`).value = data.rows[i].status || '';
+                    document.getElementById(`remarks_${i}`).value = data.rows[i].remarks || '';
+                    document.getElementById(`action_${i}`).value = data.rows[i].action || '';
+                    
+                    if (data.rows[i].images) {
+                        imageDataStore[i] = data.rows[i].images;
+                        const previewContainer = document.getElementById(`preview_${i}`);
+                        data.rows[i].images.forEach(imgSrc => {
+                            const img = document.createElement('img');
+                            img.src = imgSrc;
+                            previewContainer.appendChild(img);
+                        });
+                    }
+                }
+            }
+        }
+    }
+
+    function clearData() {
+        if (confirm('Are you sure you want to clear all inputs and attached photos?')) {
+            localStorage.removeItem('familyRoomChecklistData');
+            location.reload();
+        }
+    }
+
+    function generatePDF() {
+        const overlay = document.getElementById('loading-overlay');
+        overlay.style.display = 'block';
+
+        const element = document.getElementById('report-container');
+        const room = document.getElementById('roomNo').value || 'Report';
+        
+        const opt = {
+            margin:       [0.3, 0.3, 0.3, 0.3],
+            filename:     `Family_Room_${room}_Handover_Checklist.pdf`,
+            image:        { type: 'jpeg', quality: 0.75 },
+            html2canvas:  { scale: 1.5, useCORS: true, logging: false, letterRendering: true },
+            jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' }
+        };
+
+        setTimeout(() => {
+            html2pdf().set(opt).from(element).save().then(() => {
+                overlay.style.display = 'none';
+            }).catch(err => {
+                console.error(err);
+                alert('Error generating PDF. Please try again.');
+                overlay.style.display = 'none';
+            });
+        }, 500);
+    }
+
+    window.onload = renderTable;
+</script>
+
+</body>
+</html>
