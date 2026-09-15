@@ -261,7 +261,6 @@
 </div>
 
 <script>
-    // Updated checklist items with modification to Point 34
     const rawData = [
         {
             category: "1. Main Entrance",
@@ -322,7 +321,7 @@
                     <td><textarea id="action_${currentRowId}" placeholder="Enter required action..."></textarea></td>
                     <td>
                         <div class="photo-upload" data-html2canvas-ignore>
-                            <input type="file" accept="image/*" multiple onchange="processImages(this, ${currentRowId})">
+                            <input type="file" accept="image/*" capture="environment" multiple onchange="processImages(this, ${currentRowId})">
                         </div>
                         <div class="photo-preview" id="preview_${currentRowId}"></div>
                     </td>
@@ -345,12 +344,16 @@
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
                     
-                    const maxWidth = 800;
+                    const maxWidth = 900;
                     const scaleSize = maxWidth / img.width;
                     canvas.width = maxWidth;
                     canvas.height = img.height * scaleSize;
                     
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = 'high';
+                    ctx.filter = 'contrast(106%) brightness(102%)';
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    ctx.filter = 'none';
                     
                     const timestamp = new Date().toLocaleString();
                     ctx.font = "bold 24px Arial";
@@ -362,7 +365,7 @@
                     ctx.strokeText(timestamp, canvas.width - textWidth - 20, canvas.height - 20);
                     ctx.fillText(timestamp, canvas.width - textWidth - 20, canvas.height - 20);
                     
-                    const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.70);
                     imageDataStore[rowId].push(dataUrl);
                     
                     const previewImg = document.createElement('img');
@@ -455,13 +458,13 @@
         const tableWrapper = document.querySelector('.table-responsive');
         const prevOverflow = tableWrapper ? tableWrapper.style.overflow : '';
         if (tableWrapper) tableWrapper.style.overflow = 'visible';
-
+        
         const opt = {
             margin:       [0.3, 0.3, 0.3, 0.3],
             filename:     `Family_Room_${room}_Handover_Checklist.pdf`,
-            image:        { type: 'jpeg', quality: 0.75 },
+            image:        { type: 'jpeg', quality: 0.70 },
             html2canvas:  { scale: 1.5, useCORS: true, logging: false, letterRendering: true, scrollY: 0, scrollX: 0 },
-            jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' },
+            jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape', compress: true },
             pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
         };
 
