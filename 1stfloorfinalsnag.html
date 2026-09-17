@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detailed Room Handover Checklist - 1st Floor</title>
+    <!-- html2pdf library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --border: #bdc3c7;
+            --bg: #ecf0f1;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 15px;
+            background-color: #fff;
+            color: #333;
+        }
+        .container {
+            max-width: 1250px;
+            margin: 0 auto;
+            background: #fff;
+        }
+        h2 {
+            text-align: center;
+            color: var(--primary);
+            text-transform: uppercase;
+        }
+        .header-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            background: var(--bg);
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .header-info div {
+            flex: 1;
+            min-width: 200px;
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-weight: bold;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+        input[type="text"], input[type="date"], select, textarea {
+            padding: 8px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-family: inherit;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            min-width: 850px;
+        }
+        th, td {
+            border: 1px solid var(--border);
+            padding: 10px;
+            vertical-align: top;
+        }
+        th {
+            background-color: var(--primary);
+            color: white;
+            text-align: left;
+        }
+        .section-header {
+            background-color: #eaeded;
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 1.05em;
+        }
+        .photo-upload {
+            margin-top: 8px;
+        }
+        .photo-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .photo-preview img {
+            width: 90px;
+            height: auto;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .footer-section {
+            margin-top: 25px;
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+        .general-comments-box {
+            margin-bottom: 20px;
+        }
+        .confirmation-text {
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 25px;
+            color: var(--primary);
+            font-size: 1.05em;
+        }
+        .sign-off-grid {
+            display: flex;
+            justify-content: space-between;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        .sign-box {
+            flex: 1;
+            min-width: 250px;
+            background: white;
+            padding: 15px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+        }
+        .controls {
+            position: sticky;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.98);
+            padding: 15px 0;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            border-top: 1px solid var(--border);
+            margin-top: 20px;
+            z-index: 100;
+        }
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+        }
+        .btn-save { background-color: #27ae60; }
+        .btn-pdf { background-color: #e74c3c; }
+        .btn-clear { background-color: #7f8c8d; }
+
+        #loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            color: white;
+            font-size: 1.2em;
+            text-align: center;
+            padding-top: 20vh;
+        }
+
+        @media (max-width: 768px) {
+            .controls { flex-direction: column; }
+            button { width: 100%; }
+            .sign-off-grid { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="loading-overlay">Generating PDF, please wait...</div>
+
+<div class="container" id="report-container">
+    <h2>1st Floor - Detailed Room Handover Checklist</h2>
+    
+    <div class="header-info">
+        <div>
+            <label for="roomNo">Room No:</label>
+            <input type="text" id="roomNo" placeholder="Enter Room Number">
+        </div>
+        <div>
+            <label for="date">Date:</label>
+            <input type="date" id="date">
+        </div>
+        <div>
+            <label for="checkedBy">Checked By:</label>
+            <input type="text" id="checkedBy" placeholder="Inspector Name">
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th width="4%">No.</th>
+                    <th width="30%">Check Point Description</th>
+                    <th width="12%">Status</th>
+                    <th width="22%">Remarks / Defect</th>
+                    <th width="22%">Action Required</th>
+                    <th width="10%">Photo Evidence</th>
+                </tr>
+            </thead>
+            <tbody id="checklist-body">
+                <!-- Populated via JS -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="footer-section">
+        <div class="general-comments-box">
+            <label for="generalComments">General Comments / Observations:</label>
+            <textarea id="generalComments" placeholder="Enter any general room remarks or summary comments here..."></textarea>
+        </div>
+
+        <div class="confirmation-text">
+            Final Handover Confirmation: Room checked and all identified defects/actions recorded.
+        </div>
+
+        <div class="sign-off-grid">
+            <div class="sign-box">
+                <label>Housekeeping</label>
+                <div style="margin-top: 10px;">
+                    <input type="text" id="housekeepingCompletedBy" placeholder="Completed By (Name)">
+                </div>
+                <div style="margin-top: 10px;">
+                    <input type="text" id="housekeepingSign" placeholder="Signature / Date">
+                </div>
+            </div>
+
+            <div class="sign-box">
+                <label>Project Team</label>
+                <div style="margin-top: 10px;">
+                    <input type="text" id="projectTeamCompletedBy" placeholder="Completed By (Name)">
+                </div>
+                <div style="margin-top: 10px;">
+                    <input type="text" id="projectTeamSign" placeholder="Signature / Date">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="controls" id="controls">
+    <button class="btn-save" onclick="saveData()">Save Progress</button>
+    <button class="btn-pdf" onclick="generatePDF()">Generate PDF Report</button>
+    <button class="btn-clear" onclick="clearData()">Clear All Data</button>
+</div>
+
+<script>
+    const rawData = [
+        {
+            category: "1. Room Entrance Area",
+            items: [
+                "Fixing of Room sign board",
+                "Fixing of Calling bell switch",
+                "Fixing of Main door locks",
+                "Fixing of Main door drop down door seal",
+                "Fixing of  Peephole",
+                "Fixing of Main door seal beading",
+                "Fixing of Main door safety chain",
+                "Fixing of Main door closer",
+                "Fixing of Main door stopper",
+                "Installation of Emergency Fire Evacuation plan sign board"
+            ]
+        },
+        {
+            category: "2. Vestibule Area",
+            items: [
+                "Placing of Decorative table with marble top",
+                "Installation of Key card Holder switch",
+                "Installation of Room Service signage (DND, Make My Room & Laundry )",
+                "Installation of Bathroom lights control switch",
+                "Installation of return air grills",
+                "Installation of trap doors",
+                "Installation of Fire water sprinkler",
+                "Installation of ceiling area LED lights",
+                "Installation of wardrobes with doors",
+                "Installation of luggage rack with Marble top",
+                "Above the trap door area calling bell installation",
+                "Above the trap door wall gaps area covering work",
+                "Above the trap door wall area plastering work",
+                "Above the trap door wall area painting work",
+                "Above the trap door area LED bulkhead fitting with switch control",
+                "Above the trap door area Raw power DB installation work",
+                "Above the trap door area UPS power DB installation work",
+                "Above the trap door area cable dressing for Raw & UPS power",
+                "Above the trap door area fixing of cable ferrules",
+                "Above the trap door area installation of FCU inlet and outlet valves",
+                "Above the trap door area installation of FCU drain pipe lines",
+                "Above the trap door area insulation for FCU chilled water pipe lines",
+                "Above the trap door area installation of FCU duct and canvas",
+                "Above the trap door area installation of fresh air duct with insulation",
+                "Above the trap door area installation of fire speaker",
+                "Installation of AC grills",
+                "Vestibule ceiling & wall area painting",
+                "Vestibule floor area marble installation & polishing work",
+                "Installation of minibar cabinet with Marble",
+                "Provision of ventilation grill for the minibar cabinet",
+                "Installation of TCM tray area power socket",
+                "Installation of power socket for the minibar",
+                "Above the minibar cabinet installation of Wall mounting rack",
+                "Gap covering for the lighting control panels"
+            ]
+        },
+        {
+            category: "3. Bedroom Area",
+            items: [
+                "Installation of AC thermostat",
+                "Installation of Power socket for cleaning equipment below the AC thermostat",
+                "Installation of wall area fire water sprinkler",
+                "Installation of smoke detector",
+                "Installation of TV wall unit",
+                "Installation of data cable for the Wi-Fi access point",
+                "Installation of power socket for the TV & STB",
+                "Installation of marble shelf under the TV cabinet",
+                "Installation of RCA cable for the STB.",
+                "Installation of writing table",
+                "Installation of writing table lamp",
+                "Installation of writing table lamp area power socket",
+                "Installation of writing table lamp area mobile charging unit",
+                "Installation of Telephone socket under the writing table",
+                "Installation of above the  writing table wall mirror",
+                "Installation of Power socket under the writing table",
+                "Installation of Power socket for cleaning equipment beside the writing table",
+                "Installation of wooden frame in between the vestibule & bedroom area",
+                "Installation of bedroom ceiling LED lights",
+                "Installation of window curtain area LED strip lights",
+                "Painting of window frames",
+                "Window ledge area painting work",
+                "Installation of 2 no.s bedside wall lamps (LHS & RHS)",
+                "Installation of head board",
+                "Installation of head board area picture frame",
+                "Installation of 2 no.s bedside tables with marble tops (LHS & RHS)",
+                "Installation of 2 no.s bedside tables area lights control panels (LHS & RHS)",
+                "Fixing of 2 no.s bedside tables area power sockets (LHS & RHS)",
+                "Fixing of 2 no.s bedside tables area Mobile charging units (LHS & RHS)",
+                "Fixing of behind the 2 no.s bedside tables area Telephone sockets (LHS & RHS)",
+                "Fixing of behind the 2 no.s bedside tables area power sockets (LHS & RHS)",
+                "Bedroom wall & ceiling area painting work",
+                "Fixing of wall papers",
+                "Fixing of veneer sheets",
+                "Installation of wooden flooring",
+                "Placing of Teapoy with marble top",
+                "Gap covering for the lighting control panels"
+            ]
+        },
+        {
+            category: "4. Bathroom Area",
+            items: [
+                "Fixing of double doors with handles & locks",
+                "Installation of 2 no.s door stoppers",
+                "Installation of shower cubicle",
+                "Installation of all plumbing fixtures",
+                "Applying of silicon sealant in shower cubicle area",
+                "Fixing of drain trays",
+                "Installation of vanity counter with Marble",
+                "Installation of power socket for hair dryer",
+                "Installation of Shaver socket near the vanity counter area",
+                "Installation of mirror above the vanity counter",
+                "Installation of mirror touch control switch above the vanity counter area",
+                "Installation of mirror lights above the vanity counter area",
+                "Installation of bathroom exhaust diffuser for WC & shower area",
+                "Installation of Rob hook",
+                "Installation of bathroom ceiling lights",
+                "Above the fall ceiling wall gaps area covering work",
+                "Above the fall ceiling wall area plastering work",
+                "Above the fall ceiling flexible duct installation",
+                "Above the fall ceiling area insulation for FCU chilled water pipe lines",
+                "Installation of bathroom telephone socket",
+                "Installation of WC cubicle glass door with silicon sealant",
+                "Installation of marble profiles for the cubicles",
+                "Installation of floor marble with polishing",
+                "Installation of wall tiles area with grouting",
+                "Gap filling for the shower diverter area",
+                "Gap filling for the flush plate area",
+                "Gap filling for electrical points",
+                "Proper floor sloping for the drains"
+            ]
+        }
+    ];
+
+    const tbody = document.getElementById('checklist-body');
+    let imageDataStore = {}; 
+    let globalRowCounter = 1;
+
+    function renderTable() {
+        rawData.forEach(section => {
+            const sectionTr = document.createElement('tr');
+            sectionTr.innerHTML = `<td colspan="6" class="section-header">${section.category}</td>`;
+            tbody.appendChild(sectionTr);
+
+            section.items.forEach(point => {
+                const currentRowId = globalRowCounter++;
+                imageDataStore[currentRowId] = [];
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${currentRowId}</td>
+                    <td>${point}</td>
+                    <td>
+                        <select id="status_${currentRowId}">
+                            <option value="">Select...</option>
+                            <option value="YES">YES</option>
+                            <option value="NO">NO</option>
+                        </select>
+                    </td>
+                    <td><textarea id="remarks_${currentRowId}" placeholder="Enter remarks..."></textarea></td>
+                    <td><textarea id="action_${currentRowId}" placeholder="Enter required action..."></textarea></td>
+                    <td>
+                        <div class="photo-upload" data-html2canvas-ignore>
+                            <input type="file" accept="image/*" capture="environment" multiple onchange="processImages(this, ${currentRowId})">
+                        </div>
+                        <div class="photo-preview" id="preview_${currentRowId}"></div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        });
+        loadData();
+    }
+
+    async function processImages(input, rowId) {
+        if (!input.files || input.files.length === 0) return;
+        const previewContainer = document.getElementById(`preview_${rowId}`);
+        
+        for (let file of input.files) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    const maxWidth = 900;
+                    const scaleSize = maxWidth / img.width;
+                    canvas.width = (img.width > maxWidth) ? maxWidth : img.width;
+                    canvas.height = (img.width > maxWidth) ? (img.height * scaleSize) : img.height;
+                    
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = 'high';
+                    ctx.filter = 'contrast(108%) brightness(102%) saturate(105%)';
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    ctx.filter = 'none';
+                    
+                    const timestamp = new Date().toLocaleString();
+                    const fontSize = Math.max(16, Math.floor(canvas.width * 0.028));
+                    ctx.font = `bold ${fontSize}px Arial, sans-serif`;
+                    ctx.fillStyle = "#FFD700";
+                    ctx.strokeStyle = "#000000";
+                    ctx.lineWidth = Math.max(2, Math.floor(fontSize * 0.1));
+                    
+                    const textWidth = ctx.measureText(timestamp).width;
+                    const margin = Math.floor(canvas.width * 0.02);
+                    const xPos = canvas.width - textWidth - margin;
+                    const yPos = canvas.height - margin;
+                    
+                    ctx.strokeText(timestamp, xPos, yPos);
+                    ctx.fillText(timestamp, xPos, yPos);
+                    
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.70);
+                    imageDataStore[rowId].push(dataUrl);
+                    
+                    const previewImg = document.createElement('img');
+                    previewImg.src = dataUrl;
+                    previewContainer.appendChild(previewImg);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+        input.value = '';
+    }
+
+    function saveData() {
+        const data = {
+            roomNo: document.getElementById('roomNo').value,
+            date: document.getElementById('date').value,
+            checkedBy: document.getElementById('checkedBy').value,
+            generalComments: document.getElementById('generalComments').value,
+            housekeepingCompletedBy: document.getElementById('housekeepingCompletedBy').value,
+            housekeepingSign: document.getElementById('housekeepingSign').value,
+            projectTeamCompletedBy: document.getElementById('projectTeamCompletedBy').value,
+            projectTeamSign: document.getElementById('projectTeamSign').value,
+            rows: {}
+        };
+
+        for (let i = 1; i < globalRowCounter; i++) {
+            data.rows[i] = {
+                status: document.getElementById(`status_${i}`).value,
+                remarks: document.getElementById(`remarks_${i}`).value,
+                action: document.getElementById(`action_${i}`).value,
+                images: imageDataStore[i]
+            };
+        }
+
+        localStorage.setItem('firstFloorChecklistData', JSON.stringify(data));
+        alert('1st Floor Checklist progress saved successfully!');
+    }
+
+    function loadData() {
+        const saved = localStorage.getItem('firstFloorChecklistData');
+        if (saved) {
+            const data = JSON.parse(saved);
+            document.getElementById('roomNo').value = data.roomNo || '';
+            document.getElementById('date').value = data.date || '';
+            document.getElementById('checkedBy').value = data.checkedBy || '';
+            document.getElementById('generalComments').value = data.generalComments || '';
+            document.getElementById('housekeepingCompletedBy').value = data.housekeepingCompletedBy || '';
+            document.getElementById('housekeepingSign').value = data.housekeepingSign || '';
+            document.getElementById('projectTeamCompletedBy').value = data.projectTeamCompletedBy || '';
+            document.getElementById('projectTeamSign').value = data.projectTeamSign || '';
+
+            for (let i = 1; i < globalRowCounter; i++) {
+                if (data.rows && data.rows[i]) {
+                    document.getElementById(`status_${i}`).value = data.rows[i].status || '';
+                    document.getElementById(`remarks_${i}`).value = data.rows[i].remarks || '';
+                    document.getElementById(`action_${i}`).value = data.rows[i].action || '';
+                    
+                    if (data.rows[i].images) {
+                        imageDataStore[i] = data.rows[i].images;
+                        const previewContainer = document.getElementById(`preview_${i}`);
+                        data.rows[i].images.forEach(imgSrc => {
+                            const img = document.createElement('img');
+                            img.src = imgSrc;
+                            previewContainer.appendChild(img);
+                        });
+                    }
+                }
+            }
+        }
+    }
+
+    function clearData() {
+        if (confirm('Are you sure you want to clear all inputs and attached photos?')) {
+            localStorage.removeItem('firstFloorChecklistData');
+            location.reload();
+        }
+    }
+
+    function generatePDF() {
+        const overlay = document.getElementById('loading-overlay');
+        overlay.style.display = 'block';
+
+        const element = document.getElementById('report-container');
+        const room = document.getElementById('roomNo').value || 'Report';
+
+        const prevScrollY = window.scrollY;
+        window.scrollTo(0, 0);
+
+        const tableWrapper = document.querySelector('.table-responsive');
+        const prevOverflow = tableWrapper ? tableWrapper.style.overflow : '';
+        if (tableWrapper) tableWrapper.style.overflow = 'visible';
+        
+        const opt = {
+            margin:       [0.3, 0.3, 0.3, 0.3],
+            filename:     `1st_Floor_Room_${room}_Handover_Checklist.pdf`,
+            image:        { type: 'jpeg', quality: 0.70 },
+            html2canvas:  { scale: 1.5, useCORS: true, logging: false, letterRendering: true, scrollY: 0, scrollX: 0 },
+            jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape', compress: true },
+            pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+        };
+
+        setTimeout(() => {
+            html2pdf().set(opt).from(element).save().then(() => {
+                if (tableWrapper) tableWrapper.style.overflow = prevOverflow;
+                window.scrollTo(0, prevScrollY);
+                overlay.style.display = 'none';
+            }).catch(err => {
+                console.error(err);
+                if (tableWrapper) tableWrapper.style.overflow = prevOverflow;
+                window.scrollTo(0, prevScrollY);
+                alert('Error generating PDF. Please try again.');
+                overlay.style.display = 'none';
+            });
+        }, 500);
+    }
+
+    window.onload = renderTable;
+</script>
+
+</body>
+</html>
