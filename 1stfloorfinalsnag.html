@@ -89,22 +89,6 @@
             color: #2c3e50;
             font-size: 1.05em;
         }
-        .photo-upload {
-            margin-top: 8px;
-        }
-        .photo-preview {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 8px;
-        }
-        .photo-preview img {
-            width: 90px;
-            height: auto;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
         .footer-section {
             margin-top: 25px;
             border: 1px solid var(--border);
@@ -173,6 +157,11 @@
             padding-top: 20vh;
         }
 
+        /* Condition option text styles */
+        .opt-high { color: #dc3545; font-weight: bold; }
+        .opt-medium { color: #d4ac0d; font-weight: bold; }
+        .opt-good { color: #28a745; font-weight: bold; }
+
         @media (max-width: 768px) {
             .controls { flex-direction: column; }
             button { width: 100%; }
@@ -206,12 +195,11 @@
         <table>
             <thead>
                 <tr>
-                    <th width="4%">No.</th>
-                    <th width="30%">Check Point Description</th>
-                    <th width="12%">Status</th>
-                    <th width="22%">Remarks / Defect</th>
-                    <th width="22%">Action Required</th>
-                    <th width="10%">Photo Evidence</th>
+                    <th width="5%">No.</th>
+                    <th width="35%">Check Point Description</th>
+                    <th width="15%">Condition</th>
+                    <th width="22.5%">Remarks / Defect</th>
+                    <th width="22.5%">Action Required</th>
                 </tr>
             </thead>
             <tbody id="checklist-body">
@@ -269,7 +257,7 @@
                 "Fixing of Calling bell switch",
                 "Fixing of Main door locks",
                 "Fixing of Main door drop down door seal",
-                "Fixing of  Peephole",
+                "Fixing of Peephole",
                 "Fixing of Main door seal beading",
                 "Fixing of Main door safety chain",
                 "Fixing of Main door closer",
@@ -333,7 +321,7 @@
                 "Installation of writing table lamp area power socket",
                 "Installation of writing table lamp area mobile charging unit",
                 "Installation of Telephone socket under the writing table",
-                "Installation of above the  writing table wall mirror",
+                "Installation of above the writing table wall mirror",
                 "Installation of Power socket under the writing table",
                 "Installation of Power socket for cleaning equipment beside the writing table",
                 "Installation of wooden frame in between the vestibule & bedroom area",
@@ -394,95 +382,52 @@
     ];
 
     const tbody = document.getElementById('checklist-body');
-    let imageDataStore = {}; 
     let globalRowCounter = 1;
+
+    function updateConditionColor(selectEl) {
+        if (selectEl.value === "High Priority") {
+            selectEl.style.color = "#dc3545";
+            selectEl.style.fontWeight = "bold";
+        } else if (selectEl.value === "Medium Priority") {
+            selectEl.style.color = "#d4ac0d";
+            selectEl.style.fontWeight = "bold";
+        } else if (selectEl.value === "Good to Go") {
+            selectEl.style.color = "#28a745";
+            selectEl.style.fontWeight = "bold";
+        } else {
+            selectEl.style.color = "";
+            selectEl.style.fontWeight = "normal";
+        }
+    }
 
     function renderTable() {
         rawData.forEach(section => {
             const sectionTr = document.createElement('tr');
-            sectionTr.innerHTML = `<td colspan="6" class="section-header">${section.category}</td>`;
+            sectionTr.innerHTML = `<td colspan="5" class="section-header">${section.category}</td>`;
             tbody.appendChild(sectionTr);
 
             section.items.forEach(point => {
                 const currentRowId = globalRowCounter++;
-                imageDataStore[currentRowId] = [];
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${currentRowId}</td>
                     <td>${point}</td>
                     <td>
-                        <select id="status_${currentRowId}">
+                        <select id="status_${currentRowId}" onchange="updateConditionColor(this)">
                             <option value="">Select...</option>
-                            <option value="YES">YES</option>
-                            <option value="NO">NO</option>
+                            <option value="High Priority" class="opt-high">High Priority</option>
+                            <option value="Medium Priority" class="opt-medium">Medium Priority</option>
+                            <option value="Good to Go" class="opt-good">Good to Go</option>
                         </select>
                     </td>
                     <td><textarea id="remarks_${currentRowId}" placeholder="Enter remarks..."></textarea></td>
                     <td><textarea id="action_${currentRowId}" placeholder="Enter required action..."></textarea></td>
-                    <td>
-                        <div class="photo-upload" data-html2canvas-ignore>
-                            <input type="file" accept="image/*" capture="environment" multiple onchange="processImages(this, ${currentRowId})">
-                        </div>
-                        <div class="photo-preview" id="preview_${currentRowId}"></div>
-                    </td>
                 `;
                 tbody.appendChild(tr);
             });
         });
         loadData();
-    }
-
-    async function processImages(input, rowId) {
-        if (!input.files || input.files.length === 0) return;
-        const previewContainer = document.getElementById(`preview_${rowId}`);
-        
-        for (let file of input.files) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = new Image();
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    
-                    const maxWidth = 900;
-                    const scaleSize = maxWidth / img.width;
-                    canvas.width = (img.width > maxWidth) ? maxWidth : img.width;
-                    canvas.height = (img.width > maxWidth) ? (img.height * scaleSize) : img.height;
-                    
-                    ctx.imageSmoothingEnabled = true;
-                    ctx.imageSmoothingQuality = 'high';
-                    ctx.filter = 'contrast(108%) brightness(102%) saturate(105%)';
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    ctx.filter = 'none';
-                    
-                    const timestamp = new Date().toLocaleString();
-                    const fontSize = Math.max(16, Math.floor(canvas.width * 0.028));
-                    ctx.font = `bold ${fontSize}px Arial, sans-serif`;
-                    ctx.fillStyle = "#FFD700";
-                    ctx.strokeStyle = "#000000";
-                    ctx.lineWidth = Math.max(2, Math.floor(fontSize * 0.1));
-                    
-                    const textWidth = ctx.measureText(timestamp).width;
-                    const margin = Math.floor(canvas.width * 0.02);
-                    const xPos = canvas.width - textWidth - margin;
-                    const yPos = canvas.height - margin;
-                    
-                    ctx.strokeText(timestamp, xPos, yPos);
-                    ctx.fillText(timestamp, xPos, yPos);
-                    
-                    const dataUrl = canvas.toDataURL('image/jpeg', 0.70);
-                    imageDataStore[rowId].push(dataUrl);
-                    
-                    const previewImg = document.createElement('img');
-                    previewImg.src = dataUrl;
-                    previewContainer.appendChild(previewImg);
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-        input.value = '';
     }
 
     function saveData() {
@@ -502,8 +447,7 @@
             data.rows[i] = {
                 status: document.getElementById(`status_${i}`).value,
                 remarks: document.getElementById(`remarks_${i}`).value,
-                action: document.getElementById(`action_${i}`).value,
-                images: imageDataStore[i]
+                action: document.getElementById(`action_${i}`).value
             };
         }
 
@@ -526,26 +470,19 @@
 
             for (let i = 1; i < globalRowCounter; i++) {
                 if (data.rows && data.rows[i]) {
-                    document.getElementById(`status_${i}`).value = data.rows[i].status || '';
+                    const statusSelect = document.getElementById(`status_${i}`);
+                    statusSelect.value = data.rows[i].status || '';
+                    updateConditionColor(statusSelect);
+
                     document.getElementById(`remarks_${i}`).value = data.rows[i].remarks || '';
                     document.getElementById(`action_${i}`).value = data.rows[i].action || '';
-                    
-                    if (data.rows[i].images) {
-                        imageDataStore[i] = data.rows[i].images;
-                        const previewContainer = document.getElementById(`preview_${i}`);
-                        data.rows[i].images.forEach(imgSrc => {
-                            const img = document.createElement('img');
-                            img.src = imgSrc;
-                            previewContainer.appendChild(img);
-                        });
-                    }
                 }
             }
         }
     }
 
     function clearData() {
-        if (confirm('Are you sure you want to clear all inputs and attached photos?')) {
+        if (confirm('Are you sure you want to clear all inputs?')) {
             localStorage.removeItem('firstFloorChecklistData');
             location.reload();
         }
